@@ -145,10 +145,10 @@
   </style>
 </head>
 <body>
-  <h1>수식 피라미드 게임</h1>
+    <h1>수식 피라미드 게임</h1>
   <div class="game-container">
     <div class="history">
-      $1
+      <p id="score-display">점수: 0</p>
 <p id="answer-count">총 해답 수: 0</p>
 <p id="total-solutions">가능한 정답 수: 계산 중...</p>
       <ul id="history-list"></ul>
@@ -166,6 +166,7 @@
     let selected = [];
     let history = new Set();
     let targetNumber = 12;
+    let score = 0;
 
     const operators = ['+', '-', '*', '/'];
 
@@ -242,8 +243,11 @@
       const indices = selected.map(c => parseInt(c.dataset.index));
       const values = indices.map(i => cellsData[i]);
       const key = selected.map(el => el.querySelector('.label').innerText).join('');
+
       if (history.has(key)) {
         document.getElementById('result').innerText = '❌ 이미 시도한 조합입니다 (-1점)';
+        score--;
+        document.getElementById('score-display').innerText = `점수: ${score}`;
         selected.forEach(c => c.classList.remove('selected'));
         selected = [];
         return;
@@ -254,12 +258,16 @@
       result = eval(`${result} ${values[2].op} ${values[2].val}`);
 
       if (Math.round(result) === targetNumber) {
+        score++;
+        document.getElementById('score-display').innerText = `점수: ${score}`;
         document.getElementById('result').innerText = '✅ 정답입니다! (+1점)';
         document.getElementById('history-list').innerHTML += `<li>${key}</li>`;
         history.add(key);
         document.getElementById('answer-count').innerText = `총 해답 수: ${history.size}`;
       } else {
         document.getElementById('result').innerText = '❌ 오답입니다 (-1점)';
+        score--;
+        document.getElementById('score').innerText = `점수: ${score}`;
       }
 
       selected.forEach(c => c.classList.remove('selected'));
@@ -316,6 +324,8 @@
       selected = [];
       history = new Set();
       document.getElementById('history-list').innerHTML = '';
+      score = 0;
+      document.getElementById('score-display').innerText = '점수: 0';
       targetNumber = getRandomInt(-20, 20);
       document.getElementById('target').innerText = `🎯 TARGET: ${targetNumber}`;
       buildPyramid();
