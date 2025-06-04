@@ -179,7 +179,7 @@
       let list = [];
       let seenPairs = new Set();
       while (list.length < 10) {
-        let val = getRandomInt(1, 15);
+        let val = getRandomInt(1, 10);
         let op = operators[Math.floor(Math.random() * operators.length)];
         let key = `${op}${val}`;
         if (seenPairs.has(key)) continue;
