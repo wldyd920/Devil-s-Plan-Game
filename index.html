@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>피라미드 수식 퍼즐</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      background-color: #f0f0f0;
+    }
+    .sidebar {
+      width: 200px;
+      padding: 10px;
+      background-color: #fff;
+      border-right: 1px solid #ccc;
+    }
+    .content {
+      flex: 1;
+      padding: 20px;
+      text-align: center;
+    }
+    .pyramid {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+    }
+    .row {
+      display: flex;
+      gap: 10px;
+      margin: 5px 0;
+    }
+    .cell {
+      padding: 10px 16px;
+      background-color: white;
+      border: 2px solid #444;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .cell.selected {
+      background-color: #a2d2ff;
+    }
+    #target {
+      font-size: 24px;
+      margin-top: 20px;
+    }
+    #result, #score {
+      margin-top: 10px;
+      font-size: 20px;
+      color: #333;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h3>정답 기록</h3>
+    <ul id="history"></ul>
+    <div id="score">점수: 0</div>
+  </div>
+  <div class="content">
+    <h1>피라미드 수식 퍼즐</h1>
+    <div id="target"></div>
+    <div class="pyramid" id="pyramid"></div>
+    <div id="result">3개의 셀을 선택해 타겟 넘버를 만들어보세요!</div>
+    <button onclick="resetGame()">🔄 리셋</button>
+  </div>
+  <script>
+    let pyramid = [];
+    let path = [];
+    let currentValue = null;
+    let targetNumber = 0;
+    let solutionPath = [];
+    let history = [];
+    let score = 0;
+
+    const operators = ['+', '-', '*', '/'];
+
+    function generateSolvablePyramid() {
+      const baseValue = Math.floor(Math.random() * 20) + 1;
+      const cells = [];
+      let value = baseValue;
+      solutionPath = [];
+      for (let i = 0; i < 3; i++) {
+        const op = operators[Math.floor(Math.random() * operators.length)];
+        const operand = Math.floor(Math.random() * 10) + 1;
+        cells.push({ operator: op, value: operand });
+        switch (op) {
+          case '+': value += operand; break;
+          case '-': value -= operand; break;
+          case '*': value *= operand; break;
+          case '/': value /= operand; break;
+        }
+      }
+      targetNumber = parseFloat(value.toFixed(2));
+
+      const pyramidSet = new Set();
+      pyramidSet.add(`${cells[0].operator}${cells[0].value}`);
+      pyramidSet.add(`${cells[1].operator}${cells[1].value}`);
+      pyramidSet.add(`${cells[2].operator}${cells[2].value}`);
+
+      solutionPath = [
+        { operator: '', value: baseValue },
+        ...cells
+      ];
+
+      while (pyramidSet.size < 10) {
+        const op = operators[Math.floor(Math.random() * operators.length)];
+        const val = Math.floor(Math.random() * 20) + 1;
+        pyramidSet.add(`${op}${val}`);
+      }
+      const all = Array.from(pyramidSet).map((s, i) => {
+        return {
+          id: i,
+          operator: s[0],
+          value: parseInt(s.slice(1)),
+          row: Math.floor(i / 4),
+          col: i % 4
+        };
+      });
+      all.push({ id: 10, operator: '', value: baseValue, row: 2, col: 0 });
+      return all.slice(0, 10);
+    }
+
+    function renderPyramid() {
+      const container = document.getElementById('pyramid');
+      container.innerHTML = '';
+      for (let row = 0; row < 4; row++) {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'row';
+        for (let i = 0; i < pyramid.length; i++) {
+          if (pyramid[i].row === row) {
+            const btn = document.createElement('div');
+            btn.className = 'cell';
+            btn.textContent = `${pyramid[i].operator}${pyramid[i].value}`;
+            btn.dataset.id = pyramid[i].id;
+            btn.onclick = () => handleClick(pyramid[i]);
+            rowDiv.appendChild(btn);
+          }
+        }
+        container.appendChild(rowDiv);
+      }
+    }
+
+    function handleClick(cell) {
+      if (path.find(c => c.id === cell.id)) return;
+      if (path.length >= 3) return;
+
+      path.push(cell);
+      document.querySelector(`[data-id='${cell.id}']`).classList.add('selected');
+
+      if (path.length === 1) {
+        currentValue = cell.value;
+      } else {
+        const { operator, value } = cell;
+        switch (operator) {
+          case '+': currentValue += value; break;
+          case '-': currentValue -= value; break;
+          case '*': currentValue *= value; break;
+          case '/': currentValue /= value; break;
+        }
+      }
+
+      document.getElementById('result').textContent = `현재 값: ${currentValue.toFixed(2)}`;
+
+      if (path.length === 3) {
+        validateAnswer(currentValue);
+      }
+    }
+
+    function validateAnswer(val) {
+      const key = path.map(c => c.id).sort().join('-');
+      if (Math.abs(val - targetNumber) < 0.01) {
+        if (history.includes(key)) {
+          score--;
+          alert('이미 찾은 해답입니다. -1점');
+        } else {
+          score++;
+          history.push(key);
+          const li = document.createElement('li');
+          li.textContent = path.map(c => `${c.operator}${c.value}`).join(' → ');
+          document.getElementById('history').appendChild(li);
+          alert('정답입니다! +1점 🎉');
+        }
+      } else {
+        score--;
+        alert('틀렸습니다. -1점');
+      }
+      updateScore();
+    }
+
+    function updateScore() {
+      document.getElementById('score').textContent = `점수: ${score}`;
+    }
+
+    function resetGame() {
+      path = [];
+      pyramid = generateSolvablePyramid();
+      renderPyramid();
+      document.getElementById('target').textContent = `🎯 타겟 넘버: ${targetNumber}`;
+      document.getElementById('result').textContent = '3개의 셀을 선택해 타겟 넘버를 만들어보세요!';
+    }
+
+    resetGame();
+  </script>
+</body>
+</html>
