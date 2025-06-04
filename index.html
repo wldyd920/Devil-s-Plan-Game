@@ -179,7 +179,7 @@
       let list = [];
       let seenPairs = new Set();
       while (list.length < 10) {
-        let val = getRandomInt(1, 20);
+        let val = getRandomInt(1, 15);
         let op = operators[Math.floor(Math.random() * operators.length)];
         let key = `${op}${val}`;
         if (seenPairs.has(key)) continue;
@@ -253,8 +253,8 @@
         return;
       }
 
-      let num = values[0].val;
-      let result = eval(`${num} ${values[1].op} ${values[1].val}`);
+      let result = values[0].val;
+      result = eval(`${result} ${values[1].op} ${values[1].val}`);
       result = eval(`${result} ${values[2].op} ${values[2].val}`);
 
       if (Math.round(result) === targetNumber) {
@@ -267,7 +267,7 @@
       } else {
         document.getElementById('result').innerText = '❌ 오답입니다 (-1점)';
         score--;
-        document.getElementById('score').innerText = `점수: ${score}`;
+        document.getElementById('score-display').innerText = `점수: ${score}`;
       }
 
       selected.forEach(c => c.classList.remove('selected'));
