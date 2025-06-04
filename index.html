@@ -1,25 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>피라미드 수식 퍼즐</title>
+  <title>수식 피라미드 게임</title>
   <style>
     body {
-      font-family: sans-serif;
-      display: flex;
-      background-color: #f0f0f0;
-    }
-    .sidebar {
-      width: 200px;
-      padding: 10px;
-      background-color: #fff;
-      border-right: 1px solid #ccc;
-    }
-    .content {
-      flex: 1;
-      padding: 20px;
+      font-family: 'Arial', sans-serif;
       text-align: center;
+      background: #3a3a3a;
+      color: #f0f0f0;
+      margin: 0;
+      padding: 0;
+    }
+    .game-container {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      padding: 20px;
+    }
+    .history {
+      width: 150px;
+      text-align: left;
+      background: #222;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    .history h3 {
+      color: #ffc107;
+    }
+    .history ul {
+      list-style: none;
+      padding-left: 0;
     }
     .pyramid {
       display: flex;
@@ -29,194 +40,192 @@
     }
     .row {
       display: flex;
-      gap: 10px;
-      margin: 5px 0;
+      justify-content: center;
+      margin: 5px;
     }
     .cell {
-      padding: 10px 16px;
-      background-color: white;
-      border: 2px solid #444;
-      border-radius: 8px;
+      width: 70px;
+      height: 40.41px;
+      background: #e6e1d5;
+      border: 3px solid #b8a76c;
+      margin: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 18px;
+      position: relative;
+      clip-path: polygon(
+        50% 0%,
+        93% 25%,
+        93% 75%,
+        50% 100%,
+        7% 75%,
+        7% 25%
+      );
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
       cursor: pointer;
-      font-size: 16px;
     }
-    .cell.selected {
-      background-color: #a2d2ff;
+    .selected {
+      background: #ffe066;
+      border-color: #c9a800;
     }
     #target {
       font-size: 24px;
-      margin-top: 20px;
+      font-weight: bold;
+      background: #6c757d;
+      border: 2px solid #333;
+      padding: 10px;
+      border-radius: 6px;
+      margin: 20px auto;
+      width: 200px;
     }
-    #result, #score {
-      margin-top: 10px;
-      font-size: 20px;
-      color: #333;
+    .controls {
+      display: flex;
+      justify-content: space-around;
+      margin: 20px;
     }
     button {
-      margin-top: 20px;
       padding: 10px 20px;
+      border: none;
+      background: #17a2b8;
+      color: white;
       font-size: 16px;
+      border-radius: 5px;
       cursor: pointer;
     }
-    ul {
-      list-style: none;
-      padding: 0;
+    button:hover {
+      background: #138496;
     }
-    li {
-      margin-bottom: 5px;
+    #result {
+      font-size: 20px;
+      margin: 10px;
     }
   </style>
 </head>
 <body>
-  <div class="sidebar">
-    <h3>정답 기록</h3>
-    <ul id="history"></ul>
-    <div id="score">점수: 0</div>
-  </div>
-  <div class="content">
-    <h1>피라미드 수식 퍼즐</h1>
-    <div id="target"></div>
-    <div class="pyramid" id="pyramid"></div>
-    <div id="result">3개의 셀을 선택해 타겟 넘버를 만들어보세요!</div>
-    <button onclick="resetGame()">🔄 리셋</button>
+  <h1>수식 피라미드 게임</h1>
+  <div class="game-container">
+    <div class="history">
+      <h3>해답 기록</h3>
+      <ul id="history-list"></ul>
+    </div>
+    <div>
+      <div id="target">🎯 TARGET: 12</div>
+      <div class="pyramid" id="pyramid"></div>
+      <div id="result"></div>
+      <div class="controls">
+        <button onclick="resetSelection()">선택 리셋</button>
+        <button onclick="restartGame()">게임 리스타트</button>
+      </div>
+    </div>
   </div>
   <script>
-    let pyramid = [];
-    let path = [];
-    let currentValue = null;
-    let targetNumber = 0;
-    let solutionPath = [];
-    let history = [];
-    let score = 0;
+    let cellsData = [];
+    let selected = [];
+    let history = new Set();
+    let targetNumber = 12;
 
     const operators = ['+', '-', '*', '/'];
 
-    function generateSolvablePyramid() {
-      const baseValue = Math.floor(Math.random() * 20) + 1;
-      const cells = [];
-      let value = baseValue;
-      solutionPath = [];
-      for (let i = 0; i < 3; i++) {
-        const op = operators[Math.floor(Math.random() * operators.length)];
-        const operand = Math.floor(Math.random() * 10) + 1;
-        cells.push({ operator: op, value: operand });
-        switch (op) {
-          case '+': value += operand; break;
-          case '-': value -= operand; break;
-          case '*': value *= operand; break;
-          case '/': value /= operand; break;
-        }
-      }
-      targetNumber = parseFloat(value.toFixed(2));
-
-      const pyramidSet = new Set();
-      pyramidSet.add(`${cells[0].operator}${cells[0].value}`);
-      pyramidSet.add(`${cells[1].operator}${cells[1].value}`);
-      pyramidSet.add(`${cells[2].operator}${cells[2].value}`);
-
-      solutionPath = [
-        { operator: '', value: baseValue },
-        ...cells
-      ];
-
-      while (pyramidSet.size < 10) {
-        const op = operators[Math.floor(Math.random() * operators.length)];
-        const val = Math.floor(Math.random() * 20) + 1;
-        pyramidSet.add(`${op}${val}`);
-      }
-      const all = Array.from(pyramidSet).map((s, i) => {
-        return {
-          id: i,
-          operator: s[0],
-          value: parseInt(s.slice(1)),
-          row: Math.floor(i / 4),
-          col: i % 4
-        };
-      });
-      all.push({ id: 10, operator: '', value: baseValue, row: 2, col: 0 });
-      return all.slice(0, 10);
+    function getRandomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    function renderPyramid() {
-      const container = document.getElementById('pyramid');
-      container.innerHTML = '';
-      for (let row = 0; row < 4; row++) {
-        const rowDiv = document.createElement('div');
-        rowDiv.className = 'row';
-        for (let i = 0; i < pyramid.length; i++) {
-          if (pyramid[i].row === row) {
-            const btn = document.createElement('div');
-            btn.className = 'cell';
-            btn.textContent = `${pyramid[i].operator}${pyramid[i].value}`;
-            btn.dataset.id = pyramid[i].id;
-            btn.onclick = () => handleClick(pyramid[i]);
-            rowDiv.appendChild(btn);
-          }
+    function generateCells() {
+      const letters = 'ABCDEFGHIJ'.split('');
+      let list = [];
+      while (list.length < 10) {
+        let val = getRandomInt(-20, 20);
+        let op = operators[Math.floor(Math.random() * operators.length)];
+        list.push({
+          letter: letters[list.length],
+          val: val,
+          op: op
+        });
+      }
+      return list;
+    }
+
+    function buildPyramid() {
+      const pyramid = document.getElementById('pyramid');
+      pyramid.innerHTML = '';
+      let index = 0;
+      for (let row = 1; row <= 4; row++) {
+        const rowEl = document.createElement('div');
+        rowEl.className = 'row';
+        for (let i = 0; i < row; i++) {
+          const cell = cellsData[index];
+          const cellEl = document.createElement('div');
+          cellEl.className = 'cell';
+          cellEl.dataset.index = index;
+          cellEl.innerText = `${cell.op}${cell.val}\n(${cell.letter})`;
+          cellEl.addEventListener('click', () => selectCell(cellEl));
+          rowEl.appendChild(cellEl);
+          index++;
         }
-        container.appendChild(rowDiv);
+        pyramid.appendChild(rowEl);
       }
     }
 
-    function handleClick(cell) {
-      if (path.find(c => c.id === cell.id)) return;
-      if (path.length >= 3) return;
-
-      path.push(cell);
-      document.querySelector(`[data-id='${cell.id}']`).classList.add('selected');
-
-      if (path.length === 1) {
-        currentValue = cell.value;
+    function selectCell(cellEl) {
+      if (cellEl.classList.contains('selected')) {
+        cellEl.classList.remove('selected');
+        selected = selected.filter(c => c !== cellEl);
       } else {
-        const { operator, value } = cell;
-        switch (operator) {
-          case '+': currentValue += value; break;
-          case '-': currentValue -= value; break;
-          case '*': currentValue *= value; break;
-          case '/': currentValue /= value; break;
+        if (selected.length < 3) {
+          cellEl.classList.add('selected');
+          selected.push(cellEl);
         }
       }
-
-      document.getElementById('result').textContent = `현재 값: ${currentValue.toFixed(2)}`;
-
-      if (path.length === 3) {
-        validateAnswer(currentValue);
-      }
+      if (selected.length === 3) calculateResult();
     }
 
-    function validateAnswer(val) {
-      const key = path.map(c => c.id).sort().join('-');
-      if (Math.abs(val - targetNumber) < 0.01) {
-        if (history.includes(key)) {
-          score--;
-          alert('이미 찾은 해답입니다. -1점');
-        } else {
-          score++;
-          history.push(key);
-          const li = document.createElement('li');
-          li.textContent = path.map(c => `${c.operator}${c.value}`).join(' → ');
-          document.getElementById('history').appendChild(li);
-          alert('정답입니다! +1점 🎉');
-        }
+    function calculateResult() {
+      const indices = selected.map(c => parseInt(c.dataset.index));
+      const values = indices.map(i => cellsData[i]);
+      const key = values.map(v => v.letter).join('');
+      if (history.has(key)) {
+        document.getElementById('result').innerText = '❌ 이미 시도한 조합입니다 (-1점)';
+        selected.forEach(c => c.classList.remove('selected'));
+        selected = [];
+        return;
+      }
+
+      let num = values[0].val;
+      let result = eval(`${num} ${values[1].op} ${values[1].val}`);
+      result = eval(`${result} ${values[2].op} ${values[2].val}`);
+
+      if (Math.round(result) === targetNumber) {
+        document.getElementById('result').innerText = '✅ 정답입니다! (+1점)';
+        document.getElementById('history-list').innerHTML += `<li>${key}</li>`;
+        history.add(key);
       } else {
-        score--;
-        alert('틀렸습니다. -1점');
+        document.getElementById('result').innerText = '❌ 오답입니다 (-1점)';
       }
-      updateScore();
+
+      selected.forEach(c => c.classList.remove('selected'));
+      selected = [];
     }
 
-    function updateScore() {
-      document.getElementById('score').textContent = `점수: ${score}`;
+    function resetSelection() {
+      selected.forEach(c => c.classList.remove('selected'));
+      selected = [];
     }
 
-    function resetGame() {
-      path = [];
-      pyramid = generateSolvablePyramid();
-      renderPyramid();
-      document.getElementById('target').textContent = `🎯 타겟 넘버: ${targetNumber}`;
-      document.getElementById('result').textContent = '3개의 셀을 선택해 타겟 넘버를 만들어보세요!';
+    function restartGame() {
+      cellsData = generateCells();
+      selected = [];
+      history = new Set();
+      document.getElementById('history-list').innerHTML = '';
+      targetNumber = getRandomInt(-20, 20);
+      document.getElementById('target').innerText = `🎯 TARGET: ${targetNumber}`;
+      buildPyramid();
+      document.getElementById('result').innerText = '';
     }
 
-    resetGame();
+    // 초기 시작
+    restartGame();
   </script>
 </body>
 </html>
