@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>수식 피라미드 게임 Equation Pyramid</title>
+  <title>수식 피라미드 게임</title>
   <style>
     body {
       font-family: 'Arial', sans-serif;
@@ -149,18 +149,19 @@
   <h1>수식 피라미드 게임</h1>
   <div class="game-container">
     <div class="history">
-<p id="answer-count">Total number of revealed answers: 0</p>
-<p id="total-solutions">Total number of possible answers: 계산 중...</p>
+      $1
+<p id="answer-count">총 해답 수: 0</p>
+<p id="total-solutions">가능한 정답 수: 계산 중...</p>
       <ul id="history-list"></ul>
     </div>
     <div class="main-game">
       <div class="target-box" id="target">🎯 TARGET: 12</div>
       <div class="pyramid" id="pyramid"></div>
       <div id="result"></div>
-      <button class="reset-button" onclick="resetSelection()">reset choice</button>
+      <button class="reset-button" onclick="resetSelection()">선택 리셋</button>
     </div>
   </div>
-  <button class="restart-button" onclick="restartGame()">Game restart</button>
+  <button class="restart-button" onclick="restartGame()">게임 리스타트</button>
   <script>
     let cellsData = [];
     let selected = [];
@@ -243,7 +244,7 @@
       const values = indices.map(i => cellsData[i]);
       const key = values.map(v => v.letter).join('');
       if (history.has(key)) {
-        document.getElementById('result').innerText = '❌ This is a combination I've already tried. (-1point)';
+        document.getElementById('result').innerText = '❌ 이미 시도한 조합입니다 (-1점)';
         selected.forEach(c => c.classList.remove('selected'));
         selected = [];
         return;
@@ -254,12 +255,12 @@
       result = eval(`${result} ${values[2].op} ${values[2].val}`);
 
       if (Math.round(result) === targetNumber) {
-        document.getElementById('result').innerText = '✅ Correct answer! (+1 point)';
+        document.getElementById('result').innerText = '✅ 정답입니다! (+1점)';
         document.getElementById('history-list').innerHTML += `<li>${key}</li>`;
         history.add(key);
-        document.getElementById('answer-count').innerText = `Total number of revealed answers: ${history.size}`;
+        document.getElementById('answer-count').innerText = `총 해답 수: ${history.size}`;
       } else {
-        document.getElementById('result').innerText = '❌ Incorrect answer (-1 point)';
+        document.getElementById('result').innerText = '❌ 오답입니다 (-1점)';
       }
 
       selected.forEach(c => c.classList.remove('selected'));
@@ -299,8 +300,8 @@
       document.getElementById('target').innerText = `🎯 TARGET: ${targetNumber}`;
       buildPyramid();
       document.getElementById('result').innerText = '';
-      document.getElementById('answer-count').innerText = 'Total number of revealed answers: 0';
-      document.getElementById('total-solutions').innerText = 'Total number of possible answers: 계산 중...';
+      document.getElementById('answer-count').innerText = '총 해답 수: 0';
+      document.getElementById('total-solutions').innerText = '가능한 정답 수: 계산 중...';
       countValidSolutions();
     }
 
