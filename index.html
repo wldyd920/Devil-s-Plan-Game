@@ -97,7 +97,6 @@
       align-items: center;
       justify-content: center;
     }
-    }
     .value {
       font-size: 28px;
       font-weight: bold;
@@ -242,7 +241,7 @@
     function calculateResult() {
       const indices = selected.map(c => parseInt(c.dataset.index));
       const values = indices.map(i => cellsData[i]);
-      const key = values.map(v => v.letter).join('');
+      const key = selected.map(el => el.querySelector('.label').innerText).join('');
       if (history.has(key)) {
         document.getElementById('result').innerText = '❌ 이미 시도한 조합입니다 (-1점)';
         selected.forEach(c => c.classList.remove('selected'));
@@ -290,9 +289,30 @@
             }
           }
         }
-        document.getElementById('total-solutions').innerText = `가능한 정답 수: ${count}`;
+        return count;
       }
-      cellsData = generateCells();
+
+      let validCount = 0;
+      do {
+        cellsData = generateCells();
+        targetNumber = getRandomInt(-20, 20);
+        validCount = 0;
+        for (let i = 0; i < 10; i++) {
+          for (let j = 0; j < 10; j++) {
+            for (let k = 0; k < 10; k++) {
+              if (i === j || j === k || i === k) continue;
+              let a = cellsData[i];
+              let b = cellsData[j];
+              let c = cellsData[k];
+              let temp1 = eval(`${a.val} ${b.op} ${b.val}`);
+              let temp2 = eval(`${temp1} ${c.op} ${c.val}`);
+              if (Math.round(temp2) === targetNumber) {
+                validCount++;
+              }
+            }
+          }
+        }
+      } while (validCount === 0);
       selected = [];
       history = new Set();
       document.getElementById('history-list').innerHTML = '';
@@ -301,7 +321,7 @@
       buildPyramid();
       document.getElementById('result').innerText = '';
       document.getElementById('answer-count').innerText = '총 해답 수: 0';
-      document.getElementById('total-solutions').innerText = '가능한 정답 수: 계산 중...';
+      document.getElementById('total-solutions').innerText = `가능한 정답 수: ${validCount}`;
       countValidSolutions();
     }
 
