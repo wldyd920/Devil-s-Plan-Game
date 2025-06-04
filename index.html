@@ -6,11 +6,17 @@
   <style>
     body {
       font-family: 'Arial', sans-serif;
-      text-align: center;
-      background: #3a3a3a;
-      color: #f0f0f0;
+      background: #f0f0f5;
+      color: #333;
       margin: 0;
       padding: 0;
+    }
+    h1 {
+      text-align: center;
+      padding: 20px 0;
+      background-color: #37474f;
+      color: #fff;
+      margin-bottom: 0;
     }
     .game-container {
       display: flex;
@@ -19,87 +25,123 @@
       padding: 20px;
     }
     .history {
-      width: 150px;
+      width: 180px;
       text-align: left;
-      background: #222;
+      background: #fff;
       padding: 10px;
       border-radius: 8px;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
     }
     .history h3 {
-      color: #ffc107;
+      color: #37474f;
     }
     .history ul {
       list-style: none;
       padding-left: 0;
     }
+    .main-game {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .target-box {
+      align-self: flex-end;
+      background: #ffecb3;
+      color: #333;
+      font-size: 22px;
+      font-weight: bold;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: 2px solid #ffc107;
+      margin-bottom: 10px;
+    }
     .pyramid {
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-top: 20px;
+      margin: 30px 0;
     }
     .row {
       display: flex;
       justify-content: center;
-      margin: 5px;
+      margin: -55px 0;
     }
     .cell {
-      width: 70px;
-      height: 40.41px;
-      background: #e6e1d5;
-      border: 3px solid #b8a76c;
-      margin: 2px;
+      width: 86.6px;
+      height: 100px;
+      background: #fff3e0;
+      border: none;
+      margin: 35px;
+      position: relative;
+      clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+      filter: drop-shadow(0 0 0 transparent);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+    }
+    .label {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 20px;
+      background: #ffa726;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: bold;
       display: flex;
       align-items: center;
       justify-content: center;
+    }
+    }
+    .value {
+      font-size: 28px;
       font-weight: bold;
-      font-size: 18px;
-      position: relative;
-      clip-path: polygon(
-        50% 0%,
-        93% 25%,
-        93% 75%,
-        50% 100%,
-        7% 75%,
-        7% 25%
-      );
-      box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
-      cursor: pointer;
+      color: #ff5722;
+      font-family: Georgia, Serif;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+      margin-top: 10px;
     }
     .selected {
-      background: #ffe066;
-      border-color: #c9a800;
+      background: #ffe082;
+      border-color: #ffa000;
     }
-    #target {
-      font-size: 24px;
-      font-weight: bold;
-      background: #6c757d;
-      border: 2px solid #333;
-      padding: 10px;
-      border-radius: 6px;
-      margin: 20px auto;
-      width: 200px;
+    #result {
+      font-size: 18px;
+      margin: 10px;
+      color: #d84315;
     }
-    .controls {
-      display: flex;
-      justify-content: space-around;
-      margin: 20px;
-    }
-    button {
-      padding: 10px 20px;
-      border: none;
-      background: #17a2b8;
+    .reset-button {
+      margin-top: 10px;
+      padding: 8px 16px;
+      background: #4caf50;
       color: white;
-      font-size: 16px;
+      font-size: 14px;
+      border: none;
       border-radius: 5px;
       cursor: pointer;
     }
-    button:hover {
-      background: #138496;
+    .reset-button:hover {
+      background: #388e3c;
     }
-    #result {
-      font-size: 20px;
-      margin: 10px;
+    .restart-button {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      padding: 6px 12px;
+      font-size: 13px;
+      background: #607d8b;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .restart-button:hover {
+      background: #455a64;
     }
   </style>
 </head>
@@ -107,19 +149,19 @@
   <h1>수식 피라미드 게임</h1>
   <div class="game-container">
     <div class="history">
-      <h3>해답 기록</h3>
+      $1
+<p id="answer-count">총 해답 수: 0</p>
+<p id="total-solutions">가능한 정답 수: 계산 중...</p>
       <ul id="history-list"></ul>
     </div>
-    <div>
-      <div id="target">🎯 TARGET: 12</div>
+    <div class="main-game">
+      <div class="target-box" id="target">🎯 TARGET: 12</div>
       <div class="pyramid" id="pyramid"></div>
       <div id="result"></div>
-      <div class="controls">
-        <button onclick="resetSelection()">선택 리셋</button>
-        <button onclick="restartGame()">게임 리스타트</button>
-      </div>
+      <button class="reset-button" onclick="resetSelection()">선택 리셋</button>
     </div>
   </div>
+  <button class="restart-button" onclick="restartGame()">게임 리스타트</button>
   <script>
     let cellsData = [];
     let selected = [];
@@ -135,9 +177,13 @@
     function generateCells() {
       const letters = 'ABCDEFGHIJ'.split('');
       let list = [];
+      let seenPairs = new Set();
       while (list.length < 10) {
-        let val = getRandomInt(-20, 20);
+        let val = getRandomInt(1, 20);
         let op = operators[Math.floor(Math.random() * operators.length)];
+        let key = `${op}${val}`;
+        if (seenPairs.has(key)) continue;
+        seenPairs.add(key);
         list.push({
           letter: letters[list.length],
           val: val,
@@ -159,7 +205,19 @@
           const cellEl = document.createElement('div');
           cellEl.className = 'cell';
           cellEl.dataset.index = index;
-          cellEl.innerText = `${cell.op}${cell.val}\n(${cell.letter})`;
+
+          const labelEl = document.createElement('div');
+          labelEl.className = 'label';
+          labelEl.innerText = cell.letter;
+
+          const valueEl = document.createElement('div');
+          valueEl.className = 'value';
+          const symbol = cell.op === '*' ? '×' : cell.op === '/' ? '÷' : cell.op;
+          valueEl.innerText = `${symbol}${cell.val}`;
+
+          cellEl.appendChild(labelEl);
+          cellEl.appendChild(valueEl);
+
           cellEl.addEventListener('click', () => selectCell(cellEl));
           rowEl.appendChild(cellEl);
           index++;
@@ -200,6 +258,7 @@
         document.getElementById('result').innerText = '✅ 정답입니다! (+1점)';
         document.getElementById('history-list').innerHTML += `<li>${key}</li>`;
         history.add(key);
+        document.getElementById('answer-count').innerText = `총 해답 수: ${history.size}`;
       } else {
         document.getElementById('result').innerText = '❌ 오답입니다 (-1점)';
       }
@@ -214,6 +273,25 @@
     }
 
     function restartGame() {
+      function countValidSolutions() {
+        let count = 0;
+        for (let i = 0; i < 10; i++) {
+          for (let j = 0; j < 10; j++) {
+            for (let k = 0; k < 10; k++) {
+              if (i === j || j === k || i === k) continue;
+              let a = cellsData[i];
+              let b = cellsData[j];
+              let c = cellsData[k];
+              let temp1 = eval(`${a.val} ${b.op} ${b.val}`);
+              let temp2 = eval(`${temp1} ${c.op} ${c.val}`);
+              if (Math.round(temp2) === targetNumber) {
+                count++;
+              }
+            }
+          }
+        }
+        document.getElementById('total-solutions').innerText = `가능한 정답 수: ${count}`;
+      }
       cellsData = generateCells();
       selected = [];
       history = new Set();
@@ -222,9 +300,11 @@
       document.getElementById('target').innerText = `🎯 TARGET: ${targetNumber}`;
       buildPyramid();
       document.getElementById('result').innerText = '';
+      document.getElementById('answer-count').innerText = '총 해답 수: 0';
+      document.getElementById('total-solutions').innerText = '가능한 정답 수: 계산 중...';
+      countValidSolutions();
     }
 
-    // 초기 시작
     restartGame();
   </script>
 </body>
