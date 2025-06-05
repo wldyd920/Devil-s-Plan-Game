@@ -145,12 +145,12 @@
   </style>
 </head>
 <body>
-    <h1>수식 피라미드 게임</h1>
+  <h1>수식 피라미드 게임</h1>
   <div class="game-container">
     <div class="history">
       <p id="score-display">점수: 0</p>
-<p id="answer-count">총 해답 수: 0</p>
-<p id="total-solutions">가능한 정답 수: 계산 중...</p>
+      <p id="answer-count">총 해답 수: 0</p>
+      <p id="total-solutions">가능한 정답 수: 계산 중.</p>
       <ul id="history-list"></ul>
     </div>
     <div class="main-game">
@@ -161,6 +161,7 @@
     </div>
   </div>
   <button class="restart-button" onclick="restartGame()">게임 리스타트</button>
+
   <script>
     let cellsData = [];
     let selected = [];
@@ -253,6 +254,7 @@
         return;
       }
 
+      // 첫 번째 셀의 op는 무시
       let result = values[0].val;
       result = eval(`${result} ${values[1].op} ${values[1].val}`);
       result = eval(`${result} ${values[2].op} ${values[2].val}`);
@@ -280,6 +282,7 @@
     }
 
     function restartGame() {
+      // 유효한 해답이 하나 이상 존재하는 targetNumber와 cellsData를 찾기 위한 함수
       function countValidSolutions() {
         let count = 0;
         for (let i = 0; i < 10; i++) {
@@ -301,40 +304,33 @@
       }
 
       let validCount = 0;
+      // validCount ≥ 1인 조합이 나올 때까지 cellsData와 targetNumber를 새로 생성
       do {
         cellsData = generateCells();
         targetNumber = getRandomInt(-20, 20);
-        validCount = 0;
-        for (let i = 0; i < 10; i++) {
-          for (let j = 0; j < 10; j++) {
-            for (let k = 0; k < 10; k++) {
-              if (i === j || j === k || i === k) continue;
-              let a = cellsData[i];
-              let b = cellsData[j];
-              let c = cellsData[k];
-              let temp1 = eval(`${a.val} ${b.op} ${b.val}`);
-              let temp2 = eval(`${temp1} ${c.op} ${c.val}`);
-              if (Math.round(temp2) === targetNumber) {
-                validCount++;
-              }
-            }
-          }
-        }
+        validCount = countValidSolutions();
       } while (validCount === 0);
+
+      // 여기서부터는 "validCount ≥ 1인 targetNumber"가 설정된 상태
       selected = [];
       history = new Set();
       document.getElementById('history-list').innerHTML = '';
       score = 0;
       document.getElementById('score-display').innerText = '점수: 0';
-      targetNumber = getRandomInt(-20, 20);
+
+      // **수정된 부분**: 이미 validCount를 계산했기 때문에, 다시 targetNumber를 뽑지 않고 그대로 사용
       document.getElementById('target').innerText = `🎯 TARGET: ${targetNumber}`;
+
       buildPyramid();
       document.getElementById('result').innerText = '';
       document.getElementById('answer-count').innerText = '총 해답 수: 0';
       document.getElementById('total-solutions').innerText = `가능한 정답 수: ${validCount}`;
-      countValidSolutions();
+
+      // **countValidSolutions()를 한 번만 호출하여 validCount를 구했으므로, 
+      //   여기서는 추가 호출이 필요 없습니다.**
     }
 
+    // 페이지 로드 시 즉시 게임 시작
     restartGame();
   </script>
 </body>
