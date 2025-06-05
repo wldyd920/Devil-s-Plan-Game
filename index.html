@@ -23,9 +23,10 @@
       flex-direction: row;
       justify-content: space-between;
       padding: 20px;
+      position: relative;
     }
     .history {
-      width: 180px;
+      width: 220px;
       text-align: left;
       background: #fff;
       padding: 10px;
@@ -34,16 +35,21 @@
     }
     .history h3 {
       color: #37474f;
+      margin: 10px 0 5px;
     }
     .history ul {
       list-style: none;
       padding-left: 0;
+      margin: 0;
+      max-height: 120px;
+      overflow-y: auto;
     }
     .main-game {
       flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
+      position: relative;
     }
     .target-box {
       align-self: flex-end;
@@ -60,22 +66,21 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin: 30px 0;
+      margin: 20px 0;
     }
     .row {
       display: flex;
       justify-content: center;
-      margin: -55px 0;
+      margin: -50px 0;
     }
     .cell {
-      width: 86.6px;
-      height: 100px;
+      width: 80px;
+      height: 90px;
       background: #fff3e0;
       border: none;
-      margin: 35px;
+      margin: 30px;
       position: relative;
       clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-      filter: drop-shadow(0 0 0 transparent);
       cursor: pointer;
       display: flex;
       flex-direction: column;
@@ -98,7 +103,7 @@
       justify-content: center;
     }
     .value {
-      font-size: 28px;
+      font-size: 26px;
       font-weight: bold;
       color: #ff5722;
       font-family: Georgia, Serif;
@@ -114,18 +119,30 @@
       margin: 10px;
       color: #d84315;
     }
-    .reset-button {
+    .button-group {
       margin-top: 10px;
+    }
+    .button-group button {
+      margin-right: 10px;
       padding: 8px 16px;
-      background: #4caf50;
-      color: white;
       font-size: 14px;
       border: none;
       border-radius: 5px;
       cursor: pointer;
     }
+    .reset-button {
+      background: #4caf50;
+      color: white;
+    }
     .reset-button:hover {
       background: #388e3c;
+    }
+    .end-button {
+      background: #f44336;
+      color: white;
+    }
+    .end-button:hover {
+      background: #d32f2f;
     }
     .restart-button {
       position: absolute;
@@ -142,6 +159,21 @@
     .restart-button:hover {
       background: #455a64;
     }
+    .remaining {
+      margin-top: 15px;
+      background: #e1f5fe;
+      padding: 8px;
+      border-radius: 6px;
+      width: 100%;
+      max-width: 200px;
+    }
+    .remaining ul {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+      max-height: 100px;
+      overflow-y: auto;
+    }
   </style>
 </head>
 <body>
@@ -151,16 +183,24 @@
       <p id="score-display">점수: 0</p>
       <p id="answer-count">총 해답 수: 0</p>
       <p id="total-solutions">가능한 정답 수: 계산 중.</p>
+      <h3>나온 정답:</h3>
       <ul id="history-list"></ul>
+      <div class="remaining">
+        <h3>남은 정답들:</h3>
+        <ul id="remaining-list"></ul>
+      </div>
     </div>
     <div class="main-game">
       <div class="target-box" id="target">🎯 TARGET: 12</div>
       <div class="pyramid" id="pyramid"></div>
       <div id="result"></div>
-      <button class="reset-button" onclick="resetSelection()">선택 리셋</button>
+      <div class="button-group">
+        <button class="reset-button" onclick="resetSelection()">선택 리셋</button>
+        <button class="end-button" onclick="endGame()">게임 종료</button>
+      </div>
     </div>
+    <button class="restart-button" onclick="restartGame()">게임 리스타트</button>
   </div>
-  <button class="restart-button" onclick="restartGame()">게임 리스타트</button>
 
   <script>
     let cellsData = [];
@@ -168,6 +208,7 @@
     let history = new Set();
     let targetNumber = 12;
     let score = 0;
+    let gameOver = false;
 
     const operators = ['+', '-', '*', '/'];
 
@@ -228,6 +269,7 @@
     }
 
     function selectCell(cellEl) {
+      if (gameOver) return;
       if (cellEl.classList.contains('selected')) {
         cellEl.classList.remove('selected');
         selected = selected.filter(c => c !== cellEl);
@@ -243,7 +285,7 @@
     function calculateResult() {
       const indices = selected.map(c => parseInt(c.dataset.index));
       const values = indices.map(i => cellsData[i]);
-      const key = selected.map(el => el.querySelector('.label').innerText).join('');
+      const key = indices.map(i => cellsData[i].letter).join('');
 
       if (history.has(key)) {
         document.getElementById('result').innerText = '❌ 이미 시도한 조합입니다 (-1점)';
@@ -254,7 +296,6 @@
         return;
       }
 
-      // 첫 번째 셀의 op는 무시
       let result = values[0].val;
       result = eval(`${result} ${values[1].op} ${values[1].val}`);
       result = eval(`${result} ${values[2].op} ${values[2].val}`);
@@ -277,12 +318,14 @@
     }
 
     function resetSelection() {
+      if (gameOver) return;
       selected.forEach(c => c.classList.remove('selected'));
       selected = [];
     }
 
     function restartGame() {
-      // 유효한 해답이 하나 이상 존재하는 targetNumber와 cellsData를 찾기 위한 함수
+      gameOver = false;
+      document.getElementById('remaining-list').innerHTML = '';
       function countValidSolutions() {
         let count = 0;
         for (let i = 0; i < 10; i++) {
@@ -304,33 +347,60 @@
       }
 
       let validCount = 0;
-      // validCount ≥ 1인 조합이 나올 때까지 cellsData와 targetNumber를 새로 생성
       do {
         cellsData = generateCells();
         targetNumber = getRandomInt(-20, 20);
         validCount = countValidSolutions();
       } while (validCount === 0);
 
-      // 여기서부터는 "validCount ≥ 1인 targetNumber"가 설정된 상태
       selected = [];
       history = new Set();
       document.getElementById('history-list').innerHTML = '';
       score = 0;
       document.getElementById('score-display').innerText = '점수: 0';
-
-      // **수정된 부분**: 이미 validCount를 계산했기 때문에, 다시 targetNumber를 뽑지 않고 그대로 사용
-      document.getElementById('target').innerText = `🎯 TARGET: ${targetNumber}`;
-
-      buildPyramid();
-      document.getElementById('result').innerText = '';
       document.getElementById('answer-count').innerText = '총 해답 수: 0';
       document.getElementById('total-solutions').innerText = `가능한 정답 수: ${validCount}`;
 
-      // **countValidSolutions()를 한 번만 호출하여 validCount를 구했으므로, 
-      //   여기서는 추가 호출이 필요 없습니다.**
+      document.getElementById('target').innerText = `🎯 TARGET: ${targetNumber}`;
+      buildPyramid();
+      document.getElementById('result').innerText = '';
     }
 
-    // 페이지 로드 시 즉시 게임 시작
+    function endGame() {
+      if (gameOver) return;
+      gameOver = true;
+      // 남은 정답 계산
+      let allKeys = new Set();
+      for (let i = 0; i < 10; i++) {
+        for (let j = 0; j < 10; j++) {
+          for (let k = 0; k < 10; k++) {
+            if (i === j || j === k || i === k) continue;
+            let a = cellsData[i];
+            let b = cellsData[j];
+            let c = cellsData[k];
+            let temp1 = eval(`${a.val} ${b.op} ${b.val}`);
+            let temp2 = eval(`${temp1} ${c.op} ${c.val}`);
+            if (Math.round(temp2) === targetNumber) {
+              let key = a.letter + b.letter + c.letter;
+              allKeys.add(key);
+            }
+          }
+        }
+      }
+      const remaining = Array.from(allKeys).filter(key => !history.has(key));
+      const remListEl = document.getElementById('remaining-list');
+      remListEl.innerHTML = '';
+      if (remaining.length === 0) {
+        remListEl.innerHTML = '<li>남은 정답이 없습니다.</li>';
+      } else {
+        remaining.forEach(key => {
+          remListEl.innerHTML += `<li>${key}</li>`;
+        });
+      }
+      document.getElementById('result').innerText = '🎮 게임 종료! 남은 정답을 확인하세요.';
+    }
+
+    // 초기 게임 시작
     restartGame();
   </script>
 </body>
