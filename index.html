@@ -28,7 +28,7 @@
     .lang-toggle {
       position: absolute;
       top: 50%;
-      right: 20px;
+      right: 60px;
       transform: translateY(-50%);
       background: #757575;
       color: #ffffff;
@@ -41,6 +41,24 @@
     }
     .lang-toggle:hover {
       background: #616161;
+    }
+    /* How-to-Play Button */
+    .howto-button {
+      position: absolute;
+      top: 50%;
+      right: 180px;
+      transform: translateY(-50%);
+      background: #29b6f6;
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .howto-button:hover {
+      background: #0288d1;
     }
     .game-container {
       display: flex;
@@ -252,12 +270,70 @@
       background: #0288d1;
       transform: scale(1.05);
     }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal.show {
+      display: flex;
+    }
+    .modal-content {
+      background: #2a2d39;
+      color: #f1f1f1;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+      position: relative;
+      animation: fadeIn 0.3s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .modal-content h2 {
+      margin-bottom: 12px;
+      font-size: 1.5rem;
+      text-align: center;
+      color: #29b6f6;
+    }
+    .modal-content .howto-text {
+      line-height: 1.5;
+      font-size: 1rem;
+      white-space: pre-wrap;
+    }
+    .close-button {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      font-size: 1.5rem;
+      color: #f1f1f1;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .close-button:hover {
+      color: #ff5252;
+    }
   </style>
 </head>
 <body>
   <h1>
     <span id="game-title">수식 피라미드 게임</span>
+    <!-- 언어 전환 버튼 -->
     <button id="lang-toggle" class="lang-toggle">EN</button>
+    <!-- '게임 방법' / 'How to play?' 버튼 -->
+    <button id="how-to-play-button" class="howto-button">게임 방법</button>
   </h1>
   <div class="game-container">
     <div class="history">
@@ -284,6 +360,15 @@
     </div>
   </div>
 
+  <!-- How-to-Play Modal -->
+  <div id="howto-modal" class="modal">
+    <div class="modal-content">
+      <span id="howto-close" class="close-button">&times;</span>
+      <h2 id="howto-title">게임 방법</h2>
+      <div id="howto-text" class="howto-text"></div>
+    </div>
+  </div>
+
   <script>
     // --- Language Data and State ---
     let lang = 'ko'; // 'ko' or 'en'
@@ -306,7 +391,13 @@
         correct: '✅ 정답입니다! (+1점)',
         incorrect: '❌ 오답입니다 (-1점)',
         gameOverMsg: '🎮 게임 종료! 남은 정답을 확인하세요.',
-        calculating: '계산 중.'
+        calculating: '계산 중.',
+        howToPlayButton: '게임 방법',
+        howToPlayTitle: '게임 방법',
+        howToPlayText:
+`
+숫자 세 개를 선택하여 목표 숫자를 만들면 정답!
+(단, 첫 번째 숫자의 연산자는 제외)`
       },
       en: {
         title: 'Equation Pyramid Game',
@@ -324,7 +415,13 @@
         correct: '✅ Correct! (+1 point)',
         incorrect: '❌ Incorrect! (-1 point)',
         gameOverMsg: '🎮 Game Over! Check remaining solutions.',
-        calculating: 'calculating...'
+        calculating: 'calculating...',
+        howToPlayButton: 'How to play?',
+        howToPlayTitle: 'How to play?',
+        howToPlayText:
+`
+Choose three numbers to form the target number—that’s a correct solution!
+(Note: ignore the operator of the first number.)`
       }
     };
 
@@ -339,12 +436,16 @@
       document.getElementById('reset-button').innerText = translations[lang].resetButton;
       document.getElementById('end-button').innerText = translations[lang].endButton;
       document.getElementById('restart-button').innerText = translations[lang].restartButton;
+      document.getElementById('how-to-play-button').innerText = translations[lang].howToPlayButton;
 
       // Update score, answer count, total solutions, and target box
       updateScoreDisplay();
       updateAnswerCount();
       updateTotalSolutionsDisplay(currentValidCount);
       document.getElementById('target').innerText = `${translations[lang].targetPrefix}: ${targetNumber}`;
+
+      // Update modal title if it's open
+      document.getElementById('howto-title').innerText = translations[lang].howToPlayTitle;
 
       // Update language-toggle button label
       document.getElementById('lang-toggle').innerText = (lang === 'ko') ? 'EN' : '한글';
@@ -575,6 +676,25 @@
     document.getElementById('lang-toggle').addEventListener('click', () => {
       const newLang = (lang === 'ko') ? 'en' : 'ko';
       setLanguage(newLang);
+    });
+
+    // --- 'How to play?' / '게임 방법' 버튼 클릭 이벤트 ---
+    document.getElementById('how-to-play-button').addEventListener('click', () => {
+      // Set modal title and text based on current language
+      document.getElementById('howto-title').innerText = translations[lang].howToPlayTitle;
+      document.getElementById('howto-text').innerText = translations[lang].howToPlayText;
+      // Show modal
+      document.getElementById('howto-modal').classList.add('show');
+    });
+
+    // Close modal when clicking the close button or outside content
+    document.getElementById('howto-close').addEventListener('click', () => {
+      document.getElementById('howto-modal').classList.remove('show');
+    });
+    document.getElementById('howto-modal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('howto-modal')) {
+        document.getElementById('howto-modal').classList.remove('show');
+      }
     });
 
     // --- Initial Game Start ---
