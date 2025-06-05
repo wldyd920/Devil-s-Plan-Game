@@ -22,6 +22,25 @@
       font-size: 2rem;
       padding: 20px 0;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+    /* Language Toggle Button */
+    .lang-toggle {
+      position: absolute;
+      top: 50%;
+      right: 20px;
+      transform: translateY(-50%);
+      background: #757575;
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .lang-toggle:hover {
+      background: #616161;
     }
     .game-container {
       display: flex;
@@ -236,33 +255,118 @@
   </style>
 </head>
 <body>
-  <h1>수식 피라미드 게임</h1>
+  <h1>
+    <span id="game-title">수식 피라미드 게임</span>
+    <button id="lang-toggle" class="lang-toggle">EN</button>
+  </h1>
   <div class="game-container">
     <div class="history">
-      <h3>게임 현황</h3>
+      <h3 id="status-title">게임 현황</h3>
       <p id="score-display">점수: 0</p>
       <p id="answer-count">총 해답 수: 0</p>
       <p id="total-solutions">가능한 정답 수: 계산 중.</p>
-      <h3>나온 정답:</h3>
+      <h3 id="found-title">나온 정답:</h3>
       <ul id="history-list"></ul>
       <div class="remaining">
-        <h4>남은 정답들:</h4>
+        <h4 id="remaining-title">남은 정답들:</h4>
         <ul id="remaining-list"></ul>
       </div>
     </div>
     <div class="main-game">
-      <div class="target-box" id="target">🎯 TARGET: 12</div>
+      <div class="target-box" id="target">🎯 목표: 12</div>
       <div class="pyramid" id="pyramid"></div>
       <div id="result"></div>
       <div class="button-group">
-        <button class="reset-button" onclick="resetSelection()">선택 리셋</button>
-        <button class="end-button" onclick="endGame()">게임 종료</button>
+        <button class="reset-button" id="reset-button">선택 리셋</button>
+        <button class="end-button" id="end-button">게임 종료</button>
       </div>
-      <button class="restart-button" onclick="restartGame()">게임 리스타트</button>
+      <button class="restart-button" id="restart-button">게임 리스타트</button>
     </div>
   </div>
 
   <script>
+    // --- Language Data and State ---
+    let lang = 'ko'; // 'ko' or 'en'
+    let currentValidCount = 0;
+
+    const translations = {
+      ko: {
+        title: '수식 피라미드 게임',
+        statusTitle: '게임 현황',
+        score: '점수',
+        totalFound: '총 해답 수',
+        possibleSolutions: '가능한 정답 수',
+        foundSolutions: '나온 정답:',
+        remainingSolutions: '남은 정답들:',
+        targetPrefix: '🎯 목표',
+        resetButton: '선택 리셋',
+        endButton: '게임 종료',
+        restartButton: '게임 리스타트',
+        alreadyTried: '❌ 이미 시도한 조합입니다 (-1점)',
+        correct: '✅ 정답입니다! (+1점)',
+        incorrect: '❌ 오답입니다 (-1점)',
+        gameOverMsg: '🎮 게임 종료! 남은 정답을 확인하세요.',
+        calculating: '계산 중.'
+      },
+      en: {
+        title: 'Formula Pyramid Game',
+        statusTitle: 'Game Status',
+        score: 'Score',
+        totalFound: 'Total Solutions Found',
+        possibleSolutions: 'Possible Solutions',
+        foundSolutions: 'Found Solutions:',
+        remainingSolutions: 'Remaining Solutions:',
+        targetPrefix: '🎯 TARGET',
+        resetButton: 'Reset Selection',
+        endButton: 'End Game',
+        restartButton: 'Restart Game',
+        alreadyTried: '❌ Already tried combination (-1 point)',
+        correct: '✅ Correct! (+1 point)',
+        incorrect: '❌ Incorrect! (-1 point)',
+        gameOverMsg: '🎮 Game Over! Check remaining solutions.',
+        calculating: 'calculating...'
+      }
+    };
+
+    function setLanguage(newLang) {
+      lang = newLang;
+
+      // Update static UI text
+      document.getElementById('game-title').innerText = translations[lang].title;
+      document.getElementById('status-title').innerText = translations[lang].statusTitle;
+      document.getElementById('found-title').innerText = translations[lang].foundSolutions;
+      document.getElementById('remaining-title').innerText = translations[lang].remainingSolutions;
+      document.getElementById('reset-button').innerText = translations[lang].resetButton;
+      document.getElementById('end-button').innerText = translations[lang].endButton;
+      document.getElementById('restart-button').innerText = translations[lang].restartButton;
+
+      // Update score, answer count, total solutions, and target box
+      updateScoreDisplay();
+      updateAnswerCount();
+      updateTotalSolutionsDisplay(currentValidCount);
+      document.getElementById('target').innerText = `${translations[lang].targetPrefix}: ${targetNumber}`;
+
+      // Update language-toggle button label
+      document.getElementById('lang-toggle').innerText = (lang === 'ko') ? 'EN' : '한글';
+    }
+
+    function updateScoreDisplay() {
+      document.getElementById('score-display').innerText = `${translations[lang].score}: ${score}`;
+    }
+
+    function updateAnswerCount() {
+      document.getElementById('answer-count').innerText = `${translations[lang].totalFound}: ${history.size}`;
+    }
+
+    function updateTotalSolutionsDisplay(count) {
+      if (count === null) {
+        document.getElementById('total-solutions').innerText = `${translations[lang].possibleSolutions}: ${translations[lang].calculating}`;
+      } else {
+        document.getElementById('total-solutions').innerText = `${translations[lang].possibleSolutions}: ${count}`;
+      }
+    }
+
+    // --- Game Logic Variables ---
     let cellsData = [];
     let selected = [];
     let history = new Set();
@@ -344,9 +448,9 @@
       const key = indices.map(i => cellsData[i].letter).join('');
 
       if (history.has(key)) {
-        document.getElementById('result').innerText = '❌ 이미 시도한 조합입니다 (-1점)';
+        document.getElementById('result').innerText = translations[lang].alreadyTried;
         score--;
-        document.getElementById('score-display').innerText = `점수: ${score}`;
+        updateScoreDisplay();
         selected.forEach(c => c.classList.remove('selected'));
         selected = [];
         return;
@@ -358,15 +462,15 @@
 
       if (Math.round(result) === targetNumber) {
         score++;
-        document.getElementById('score-display').innerText = `점수: ${score}`;
-        document.getElementById('result').innerText = '✅ 정답입니다! (+1점)';
+        updateScoreDisplay();
+        document.getElementById('result').innerText = translations[lang].correct;
         document.getElementById('history-list').innerHTML += `<li>${key}</li>`;
         history.add(key);
-        document.getElementById('answer-count').innerText = `총 해답 수: ${history.size}`;
+        updateAnswerCount();
       } else {
-        document.getElementById('result').innerText = '❌ 오답입니다 (-1점)';
+        document.getElementById('result').innerText = translations[lang].incorrect;
         score--;
-        document.getElementById('score-display').innerText = `점수: ${score}`;
+        updateScoreDisplay();
       }
 
       selected.forEach(c => c.classList.remove('selected'));
@@ -382,6 +486,7 @@
     function restartGame() {
       gameOver = false;
       document.getElementById('remaining-list').innerHTML = '';
+
       function countValidSolutions() {
         let count = 0;
         for (let i = 0; i < 10; i++) {
@@ -409,15 +514,18 @@
         validCount = countValidSolutions();
       } while (validCount === 0);
 
+      // Store for language updates
+      currentValidCount = validCount;
+
       selected = [];
       history = new Set();
       document.getElementById('history-list').innerHTML = '';
       score = 0;
-      document.getElementById('score-display').innerText = '점수: 0';
-      document.getElementById('answer-count').innerText = '총 해답 수: 0';
-      document.getElementById('total-solutions').innerText = `가능한 정답 수: ${validCount}`;
+      updateScoreDisplay();
+      updateAnswerCount();
+      updateTotalSolutionsDisplay(validCount);
 
-      document.getElementById('target').innerText = `🎯 TARGET: ${targetNumber}`;
+      document.getElementById('target').innerText = `${translations[lang].targetPrefix}: ${targetNumber}`;
       buildPyramid();
       document.getElementById('result').innerText = '';
     }
@@ -446,17 +554,27 @@
       const remListEl = document.getElementById('remaining-list');
       remListEl.innerHTML = '';
       if (remaining.length === 0) {
-        remListEl.innerHTML = '<li>남은 정답이 없습니다.</li>';
+        remListEl.innerHTML = `<li>${(lang === 'ko') ? '남은 정답이 없습니다.' : 'No remaining solutions.'}</li>`;
       } else {
         remaining.forEach(key => {
           remListEl.innerHTML += `<li>${key}</li>`;
         });
       }
-      document.getElementById('result').innerText = '🎮 게임 종료! 남은 정답을 확인하세요.';
+      document.getElementById('result').innerText = translations[lang].gameOverMsg;
     }
 
-    // 초기 게임 시작
+    // --- Event Listeners ---
+    document.getElementById('reset-button').addEventListener('click', resetSelection);
+    document.getElementById('end-button').addEventListener('click', endGame);
+    document.getElementById('restart-button').addEventListener('click', restartGame);
+    document.getElementById('lang-toggle').addEventListener('click', () => {
+      const newLang = (lang === 'ko') ? 'en' : 'ko';
+      setLanguage(newLang);
+    });
+
+    // --- Initial Game Start ---
     restartGame();
+    setLanguage(lang);
   </script>
 </body>
 </html>
