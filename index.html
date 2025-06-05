@@ -456,11 +456,17 @@
         return;
       }
 
-      let result = values[0].val;
-      result = eval(`${result} ${values[1].op} ${values[1].val}`);
-      result = eval(`${result} ${values[2].op} ${values[2].val}`);
+      // 연산식 생성: 첫 번째 셀의 연산자는 무시하고, 두 번째·세 번째 셀 연산자만 사용
+      const val1 = values[0].val;
+      const op2 = values[1].op;
+      const val2 = values[1].val;
+      const op3 = values[2].op;
+      const val3 = values[2].val;
+      const expr = `${val1} ${op2} ${val2} ${op3} ${val3}`;
+      const result = eval(expr);
 
-      if (Math.round(result) === targetNumber) {
+      // 정수와 소수점까지 정확 비교
+      if (result === targetNumber) {
         score++;
         updateScoreDisplay();
         document.getElementById('result').innerText = translations[lang].correct;
@@ -496,9 +502,10 @@
               let a = cellsData[i];
               let b = cellsData[j];
               let c = cellsData[k];
-              let temp1 = eval(`${a.val} ${b.op} ${b.val}`);
-              let temp2 = eval(`${temp1} ${c.op} ${c.val}`);
-              if (Math.round(temp2) === targetNumber) {
+              // 연산식: 첫 번째 셀의 연산자 무시, 두 번째·세 번째만 사용
+              const expr = `${a.val} ${b.op} ${b.val} ${c.op} ${c.val}`;
+              let temp = eval(expr);
+              if (temp === targetNumber) {
                 count++;
               }
             }
@@ -514,9 +521,7 @@
         validCount = countValidSolutions();
       } while (validCount === 0);
 
-      // Store for language updates
       currentValidCount = validCount;
-
       selected = [];
       history = new Set();
       document.getElementById('history-list').innerHTML = '';
@@ -541,10 +546,10 @@
             let a = cellsData[i];
             let b = cellsData[j];
             let c = cellsData[k];
-            let temp1 = eval(`${a.val} ${b.op} ${b.val}`);
-            let temp2 = eval(`${temp1} ${c.op} ${c.val}`);
-            if (Math.round(temp2) === targetNumber) {
-              let key = a.letter + b.letter + c.letter;
+            const expr = `${a.val} ${b.op} ${b.val} ${c.op} ${c.val}`;
+            let temp = eval(expr);
+            if (temp === targetNumber) {
+              const key = a.letter + b.letter + c.letter;
               allKeys.add(key);
             }
           }
