@@ -321,7 +321,7 @@
       transform: scale(1.05);
     }
 
-    /* ====== New Audio Controls (Bottom Right) ====== */
+    /* ====== Audio Controls (Bottom Right) ====== */
     .audio-controls {
       position: absolute;
       bottom: 20px;
@@ -331,19 +331,23 @@
       gap: 8px;
     }
     .mute-button {
-      padding: 6px 12px;
-      font-size: 0.9rem;
+      font-size: 1.2rem;
       background: #757575;
       color: #ffffff;
       border: none;
-      border-radius: 20px;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
       transition: background 0.2s, transform 0.2s;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
     }
     .mute-button:hover {
       background: #616161;
-      transform: scale(1.05);
+      transform: scale(1.1);
     }
     .volume-slider {
       width: 100px;
@@ -452,9 +456,9 @@
         </div>
         <button class="restart-button" id="restart-button">게임 리스타트</button>
 
-        <!-- ====== New Audio Controls (Bottom Right) ====== -->
+        <!-- ====== Audio Controls (Bottom Right) ====== -->
         <div class="audio-controls">
-          <button id="mute-button" class="mute-button">Mute</button>
+          <button id="mute-button" class="mute-button">🔊</button>
           <input type="range" id="volume-slider" class="volume-slider" min="0" max="1" step="0.01" value="1">
         </div>
       </div>
@@ -721,6 +725,12 @@ Choose three numbers to form the target number—that’s a correct solution!
       document.getElementById('target').innerText = `${translations[lang].targetPrefix}: ${targetNumber}`;
       buildPyramid();
       document.getElementById('result').innerText = '';
+      // 볼륨 슬라이더와 아이콘 초기화
+      const bgm = document.getElementById('bgm');
+      bgm.volume = 1;
+      bgm.muted = false;
+      document.getElementById('volume-slider').value = 1;
+      document.getElementById('mute-button').innerText = '🔊';
     }
 
     function endGame() {
@@ -759,8 +769,13 @@ Choose three numbers to form the target number—that’s a correct solution!
     // --- Audio Control Handlers ---
     document.getElementById('mute-button').addEventListener('click', () => {
       const bgm = document.getElementById('bgm');
-      bgm.muted = !bgm.muted;
-      document.getElementById('mute-button').innerText = bgm.muted ? 'Unmute' : 'Mute';
+      if (bgm.muted) {
+        bgm.muted = false;
+        document.getElementById('mute-button').innerText = '🔊';
+      } else {
+        bgm.muted = true;
+        document.getElementById('mute-button').innerText = '🔇';
+      }
     });
 
     document.getElementById('volume-slider').addEventListener('input', (e) => {
@@ -768,10 +783,10 @@ Choose three numbers to form the target number—that’s a correct solution!
       bgm.volume = e.target.value;
       if (bgm.volume === 0) {
         bgm.muted = true;
-        document.getElementById('mute-button').innerText = 'Unmute';
+        document.getElementById('mute-button').innerText = '🔇';
       } else {
         bgm.muted = false;
-        document.getElementById('mute-button').innerText = 'Mute';
+        document.getElementById('mute-button').innerText = '🔊';
       }
     });
 
