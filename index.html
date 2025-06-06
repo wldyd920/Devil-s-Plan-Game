@@ -321,6 +321,35 @@
       transform: scale(1.05);
     }
 
+    /* ====== New Audio Controls (Bottom Right) ====== */
+    .audio-controls {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .mute-button {
+      padding: 6px 12px;
+      font-size: 0.9rem;
+      background: #757575;
+      color: #ffffff;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    }
+    .mute-button:hover {
+      background: #616161;
+      transform: scale(1.05);
+    }
+    .volume-slider {
+      width: 100px;
+      cursor: pointer;
+    }
+
     /* Modal Styles */
     .modal {
       display: none;
@@ -422,6 +451,12 @@
           <button class="end-button" id="end-button">게임 종료</button>
         </div>
         <button class="restart-button" id="restart-button">게임 리스타트</button>
+
+        <!-- ====== New Audio Controls (Bottom Right) ====== -->
+        <div class="audio-controls">
+          <button id="mute-button" class="mute-button">Mute</button>
+          <input type="range" id="volume-slider" class="volume-slider" min="0" max="1" step="0.01" value="1">
+        </div>
       </div>
     </div>
 
@@ -720,6 +755,25 @@ Choose three numbers to form the target number—that’s a correct solution!
       }
       document.getElementById('result').innerText = translations[lang].gameOverMsg;
     }
+
+    // --- Audio Control Handlers ---
+    document.getElementById('mute-button').addEventListener('click', () => {
+      const bgm = document.getElementById('bgm');
+      bgm.muted = !bgm.muted;
+      document.getElementById('mute-button').innerText = bgm.muted ? 'Unmute' : 'Mute';
+    });
+
+    document.getElementById('volume-slider').addEventListener('input', (e) => {
+      const bgm = document.getElementById('bgm');
+      bgm.volume = e.target.value;
+      if (bgm.volume === 0) {
+        bgm.muted = true;
+        document.getElementById('mute-button').innerText = 'Unmute';
+      } else {
+        bgm.muted = false;
+        document.getElementById('mute-button').innerText = 'Mute';
+      }
+    });
 
     // --- Event Listeners for In-Game Controls ---
     document.getElementById('reset-button').addEventListener('click', resetSelection);
