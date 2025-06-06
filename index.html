@@ -14,7 +14,55 @@
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
+      overflow: hidden;
     }
+
+    /* ====== Start Screen Overlay ====== */
+    #start-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+    #start-screen h1 {
+      color: #ffffff;
+      font-size: 3rem;
+      margin-bottom: 40px;
+      text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+    }
+    #start-button {
+      padding: 16px 32px;
+      font-size: 1.5rem;
+      font-weight: bold;
+      background: #29b6f6;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+    #start-button:hover {
+      background: #0288d1;
+      transform: scale(1.05);
+    }
+
+    /* ====== 게임 콘텐츠 영역 (초기에는 숨김) ====== */
+    #game-content {
+      display: none;
+      width: 100%;
+      flex: 1;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 0; /* 상단 여백 제거 */
+    }
+
     h1 {
       width: 100%;
       text-align: center;
@@ -23,6 +71,7 @@
       padding: 20px 0;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
       position: relative;
+      z-index: 1;
     }
     /* Language Toggle Button */
     .lang-toggle {
@@ -60,6 +109,7 @@
     .howto-button:hover {
       background: #0288d1;
     }
+
     .game-container {
       display: flex;
       width: 90%;
@@ -328,44 +378,60 @@
   </style>
 </head>
 <body>
-  <h1>
-    <span id="game-title">수식 피라미드 게임</span>
-    <!-- 언어 전환 버튼 -->
-    <button id="lang-toggle" class="lang-toggle">EN</button>
-    <!-- '게임 방법' / 'How to play?' 버튼 -->
-    <button id="how-to-play-button" class="howto-button">게임 방법</button>
-  </h1>
-  <div class="game-container">
-    <div class="history">
-      <h3 id="status-title">게임 현황</h3>
-      <p id="score-display">점수: 0</p>
-      <p id="answer-count">총 해답 수: 0</p>
-      <p id="total-solutions">가능한 정답 수: 계산 중.</p>
-      <h3 id="found-title">나온 정답:</h3>
-      <ul id="history-list"></ul>
-      <div class="remaining">
-        <h4 id="remaining-title">남은 정답들:</h4>
-        <ul id="remaining-list"></ul>
-      </div>
-    </div>
-    <div class="main-game">
-      <div class="target-box" id="target">🎯 목표: 12</div>
-      <div class="pyramid" id="pyramid"></div>
-      <div id="result"></div>
-      <div class="button-group">
-        <button class="reset-button" id="reset-button">선택 리셋</button>
-        <button class="end-button" id="end-button">게임 종료</button>
-      </div>
-      <button class="restart-button" id="restart-button">게임 리스타트</button>
-    </div>
+  <!-- ====== Start Screen Overlay ====== -->
+  <div id="start-screen">
+    <h1>수식 피라미드 게임</h1>
+    <button id="start-button">게임 시작</button>
   </div>
 
-  <!-- How-to-Play Modal -->
-  <div id="howto-modal" class="modal">
-    <div class="modal-content">
-      <span id="howto-close" class="close-button">&times;</span>
-      <h2 id="howto-title">게임 방법</h2>
-      <div id="howto-text" class="howto-text"></div>
+  <!-- ====== 게임 콘텐츠 (초기엔 숨김) ====== -->
+  <div id="game-content">
+    <!-- 배경 음악: controls 제거, loop만 설정 -->
+    <audio id="bgm" loop>
+      <source src="The Devil's Plan.mp3" type="audio/mpeg">
+      브라우저가 오디오 태그를 지원하지 않습니다.
+    </audio>
+
+    <h1>
+      <span id="game-title">수식 피라미드 게임</span>
+      <!-- 언어 전환 버튼 -->
+      <button id="lang-toggle" class="lang-toggle">EN</button>
+      <!-- '게임 방법' / 'How to play?' 버튼 -->
+      <button id="how-to-play-button" class="howto-button">게임 방법</button>
+    </h1>
+
+    <div class="game-container">
+      <div class="history">
+        <h3 id="status-title">게임 현황</h3>
+        <p id="score-display">점수: 0</p>
+        <p id="answer-count">총 해답 수: 0</p>
+        <p id="total-solutions">가능한 정답 수: 계산 중.</p>
+        <h3 id="found-title">나온 정답:</h3>
+        <ul id="history-list"></ul>
+        <div class="remaining">
+          <h4 id="remaining-title">남은 정답들:</h4>
+          <ul id="remaining-list"></ul>
+        </div>
+      </div>
+      <div class="main-game">
+        <div class="target-box" id="target">🎯 목표: 12</div>
+        <div class="pyramid" id="pyramid"></div>
+        <div id="result"></div>
+        <div class="button-group">
+          <button class="reset-button" id="reset-button">선택 리셋</button>
+          <button class="end-button" id="end-button">게임 종료</button>
+        </div>
+        <button class="restart-button" id="restart-button">게임 리스타트</button>
+      </div>
+    </div>
+
+    <!-- How-to-Play Modal -->
+    <div id="howto-modal" class="modal">
+      <div class="modal-content">
+        <span id="howto-close" class="close-button">&times;</span>
+        <h2 id="howto-title">게임 방법</h2>
+        <div id="howto-text" class="howto-text"></div>
+      </div>
     </div>
   </div>
 
@@ -373,6 +439,13 @@
     // --- Language Data and State ---
     let lang = 'ko'; // 'ko' or 'en'
     let currentValidCount = 0;
+    let cellsData = [];
+    let selected = [];
+    let history = new Set();
+    let targetNumber = 12;
+    let score = 0;
+    let gameOver = false;
+    const operators = ['+', '-', '*', '/'];
 
     const translations = {
       ko: {
@@ -427,8 +500,6 @@ Choose three numbers to form the target number—that’s a correct solution!
 
     function setLanguage(newLang) {
       lang = newLang;
-
-      // Update static UI text
       document.getElementById('game-title').innerText = translations[lang].title;
       document.getElementById('status-title').innerText = translations[lang].statusTitle;
       document.getElementById('found-title').innerText = translations[lang].foundSolutions;
@@ -437,17 +508,11 @@ Choose three numbers to form the target number—that’s a correct solution!
       document.getElementById('end-button').innerText = translations[lang].endButton;
       document.getElementById('restart-button').innerText = translations[lang].restartButton;
       document.getElementById('how-to-play-button').innerText = translations[lang].howToPlayButton;
-
-      // Update score, answer count, total solutions, and target box
       updateScoreDisplay();
       updateAnswerCount();
       updateTotalSolutionsDisplay(currentValidCount);
       document.getElementById('target').innerText = `${translations[lang].targetPrefix}: ${targetNumber}`;
-
-      // Update modal title if it's open
       document.getElementById('howto-title').innerText = translations[lang].howToPlayTitle;
-
-      // Update language-toggle button label
       document.getElementById('lang-toggle').innerText = (lang === 'ko') ? 'EN' : '한글';
     }
 
@@ -466,16 +531,6 @@ Choose three numbers to form the target number—that’s a correct solution!
         document.getElementById('total-solutions').innerText = `${translations[lang].possibleSolutions}: ${count}`;
       }
     }
-
-    // --- Game Logic Variables ---
-    let cellsData = [];
-    let selected = [];
-    let history = new Set();
-    let targetNumber = 12;
-    let score = 0;
-    let gameOver = false;
-
-    const operators = ['+', '-', '*', '/'];
 
     function getRandomInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -557,7 +612,6 @@ Choose three numbers to form the target number—that’s a correct solution!
         return;
       }
 
-      // 연산식 생성: 첫 번째 셀의 연산자는 무시하고, 두 번째·세 번째 셀 연산자만 사용
       const val1 = values[0].val;
       const op2 = values[1].op;
       const val2 = values[1].val;
@@ -566,7 +620,6 @@ Choose three numbers to form the target number—that’s a correct solution!
       const expr = `${val1} ${op2} ${val2} ${op3} ${val3}`;
       const result = eval(expr);
 
-      // 정수와 소수점까지 정확 비교
       if (result === targetNumber) {
         score++;
         updateScoreDisplay();
@@ -603,7 +656,6 @@ Choose three numbers to form the target number—that’s a correct solution!
               let a = cellsData[i];
               let b = cellsData[j];
               let c = cellsData[k];
-              // 연산식: 첫 번째 셀의 연산자 무시, 두 번째·세 번째만 사용
               const expr = `${a.val} ${b.op} ${b.val} ${c.op} ${c.val}`;
               let temp = eval(expr);
               if (temp === targetNumber) {
@@ -669,7 +721,7 @@ Choose three numbers to form the target number—that’s a correct solution!
       document.getElementById('result').innerText = translations[lang].gameOverMsg;
     }
 
-    // --- Event Listeners ---
+    // --- Event Listeners for In-Game Controls ---
     document.getElementById('reset-button').addEventListener('click', resetSelection);
     document.getElementById('end-button').addEventListener('click', endGame);
     document.getElementById('restart-button').addEventListener('click', restartGame);
@@ -678,16 +730,11 @@ Choose three numbers to form the target number—that’s a correct solution!
       setLanguage(newLang);
     });
 
-    // --- 'How to play?' / '게임 방법' 버튼 클릭 이벤트 ---
     document.getElementById('how-to-play-button').addEventListener('click', () => {
-      // Set modal title and text based on current language
       document.getElementById('howto-title').innerText = translations[lang].howToPlayTitle;
       document.getElementById('howto-text').innerText = translations[lang].howToPlayText;
-      // Show modal
       document.getElementById('howto-modal').classList.add('show');
     });
-
-    // Close modal when clicking the close button or outside content
     document.getElementById('howto-close').addEventListener('click', () => {
       document.getElementById('howto-modal').classList.remove('show');
     });
@@ -697,9 +744,21 @@ Choose three numbers to form the target number—that’s a correct solution!
       }
     });
 
-    // --- Initial Game Start ---
-    restartGame();
-    setLanguage(lang);
+    // --- Start Button 동작: 게임 UI 표시 + 음악 재생 + 초기화 ---
+    document.getElementById('start-button').addEventListener('click', () => {
+      // 1) Start Screen 숨기기
+      document.getElementById('start-screen').style.display = 'none';
+      // 2) 게임 콘텐츠 영역 표시
+      document.getElementById('game-content').style.display = 'flex';
+      // 3) 배경음악 재생
+      const bgm = document.getElementById('bgm');
+      bgm.play().catch(err => {
+        console.log("오디오 재생 실패:", err);
+      });
+      // 4) 게임 초기화 및 언어 세팅
+      restartGame();
+      setLanguage(lang);
+    });
   </script>
 </body>
 </html>
